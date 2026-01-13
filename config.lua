@@ -51,14 +51,14 @@ timeBetweenExActions = 800
 
 -- Map
 -- NOTE: set mapName WITHOUT .otbm at the end
-mapName = "test"
+mapName = "global"
 mapAuthor = "Yurez"
 
 -- MySQL
-mysqlHost = "127.0.0.1"
-mysqlUser = "root"
-mysqlPass = "1111111"
-mysqlDatabase = "yourdatabase"
+mysqlHost = "localhost"
+mysqlUser = "tfs"
+mysqlPass = "tfs"
+mysqlDatabase = "tfs80"
 mysqlPort = 3306
 mysqlSock = ""
 
