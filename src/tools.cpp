@@ -322,12 +322,26 @@ std::string formatDate(time_t time)
 		return std::string();
 	}
 
-	char buffer[20];
-	int res = sprintf(buffer, "%02d/%02d/%04d %02d:%02d:%02d", tms->tm_mday, tms->tm_mon + 1, tms->tm_year + 1900, tms->tm_hour, tms->tm_min, tms->tm_sec);
+	char buffer[20]; // "dd/mm/yyyy hh:mm:ss" = 19 + '\0' = 20
+	int res = std::snprintf(
+		buffer, sizeof(buffer),
+		"%02d/%02d/%04d %02d:%02d:%02d",
+		tms->tm_mday, tms->tm_mon + 1, tms->tm_year + 1900,
+		tms->tm_hour, tms->tm_min, tms->tm_sec
+	);
+
+	// res = liczba znaków bez '\0' (albo <0 przy błędzie)
 	if (res < 0) {
 		return std::string();
 	}
-	return std::string(buffer, 19);
+
+	// jeśli kiedykolwiek coś byłoby dłuższe, utnij bezpiecznie
+	if (res >= static_cast<int>(sizeof(buffer))) {
+		res = static_cast<int>(sizeof(buffer)) - 1;
+		buffer[res] = '\0';
+	}
+
+	return std::string(buffer, static_cast<size_t>(res));
 }
 
 std::string formatDateShort(time_t time)
