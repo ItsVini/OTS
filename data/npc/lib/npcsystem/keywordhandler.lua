@@ -171,4 +171,189 @@ if KeywordHandler == nil then
 		end
 		return self.lastNode[cid]
 	end
+
+
+	---------------------------------------------------------------------------
+	-- Compatibility helpers (TFS 8.0 / mixed datapacks)
+	-- Some newer NPC scripts expect:
+	--   keywordHandler:addAliasKeyword(...)
+	--   keywordHandler:addGreetKeyword(...)
+	--   keywordHandler:addFarewellKeyword(...)
+	--
+	-- This is a lightweight implementation that works with the classic Jiddo NPCSystem.
+
+	-- Keep track of the last added keyword node (used by addAliasKeyword).
+	do
+		local _oldAddKeyword = KeywordHandler.addKeyword
+		function KeywordHandler:addKeyword(keys, callback, parameters)
+			local node = _oldAddKeyword(self, keys, callback, parameters)
+			self._lastAddedKeywordNode = node
+			return node
+		end
+	end
+
+	-- Adds a synonym keyword for the previously added keyword node.
+	-- Example usage in scripts:
+	--   keywordHandler:addKeyword({'bye'}, ...)
+	--   keywordHandler:addAliasKeyword({'farewell'})
+	function KeywordHandler:addAliasKeyword(keys)
+		local last = self._lastAddedKeywordNode
+		if not last then
+			return nil
+		end
+
+		local parent = last.parent or self:getRoot()
+		local aliasNode = parent:addChildKeyword(keys, last.callback, last.parameters)
+
+		-- If the original keyword has children (yes/no nodes etc.), copy references as well.
+		-- (Shared children are fine in this NPCSystem.)
+		if last.children and #last.children > 0 then
+			for _, child in ipairs(last.children) do
+				aliasNode:addChildKeywordNode(child)
+			end
+		end
+
+		self._lastAddedKeywordNode = aliasNode
+		return aliasNode
+	end
+
+	-- Message matcher similar to the one used in some module implementations.
+	local function _defaultMessageMatcher(keywords, message)
+		-- message is already lowercased by KeywordHandler:processNodeMessage
+		for _, word in pairs(keywords) do
+			if type(word) == "string" then
+				local w = word:lower()
+				-- word boundary match:
+				-- %f[%w] ... %f[%W] makes sure we don't match inside other words.
+				if message:find("%f[%w]" .. w .. "%f[%W]") then
+					return true
+				end
+			end
+		end
+		return false
+	end
+
+	-- Internal greet handler used by addGreetKeyword.
+	local function _onGreetKeyword(cid, message, keywords, parameters)
+		local npcHandler = parameters and parameters.npcHandler or nil
+		if not npcHandler then
+			return false
+		end
+
+		local player = Player and Player(cid) or nil
+
+		-- Optional condition (if returns false -> allow other greet keywords to try).
+		if parameters._check then
+			local ok = parameters._check(player or cid)
+			if not ok then
+				return false
+			end
+		end
+
+		-- Focus the player (so follow-up keywords work like in typical NPC scripts).
+		if npcHandler.isFocused and npcHandler.addFocus then
+			if not npcHandler:isFocused(cid) then
+				npcHandler:addFocus(cid)
+			end
+		end
+
+		-- Say custom greet text if provided, otherwise fall back to npcHandler:onGreet / greet.
+		if parameters.text and npcHandler.say then
+			local name = player and player:getName() or getCreatureName(cid)
+			local out = tostring(parameters.text):gsub("|PLAYERNAME|", name)
+			npcHandler:say(out, cid, true)
+		elseif npcHandler.onGreet then
+			npcHandler:onGreet(cid, message)
+		elseif npcHandler.greet then
+			npcHandler:greet(cid, message)
+		end
+
+		-- Optional action after greeting (heal, teleport etc.)
+		if parameters._action then
+			parameters._action(player or cid)
+		end
+
+		return true
+	end
+
+	-- Internal farewell handler used by addFarewellKeyword.
+	local function _onFarewellKeyword(cid, message, keywords, parameters)
+		local npcHandler = parameters and parameters.npcHandler or nil
+		if not npcHandler then
+			return false
+		end
+
+		local player = Player and Player(cid) or nil
+
+		if parameters._check then
+			local ok = parameters._check(player or cid)
+			if not ok then
+				return false
+			end
+		end
+
+		-- Say custom farewell text if provided; otherwise call npcHandler:onFarewell / unGreet.
+		if parameters.text and npcHandler.say then
+			local name = player and player:getName() or getCreatureName(cid)
+			local out = tostring(parameters.text):gsub("|PLAYERNAME|", name)
+			npcHandler:say(out, cid, true)
+			-- try to unfocus after saying
+			if npcHandler.unGreet then
+				npcHandler:unGreet(cid)
+			elseif npcHandler.releaseFocus then
+				npcHandler:releaseFocus(cid)
+			end
+		elseif npcHandler.onFarewell then
+			npcHandler:onFarewell(cid)
+		elseif npcHandler.unGreet then
+			npcHandler:unGreet(cid)
+		end
+
+		if parameters._action then
+			parameters._action(player or cid)
+		end
+
+		return true
+	end
+
+	-- Adds a greeting keyword that supports newer script format:
+	--   keywordHandler:addGreetKeyword({'hi'}, {npcHandler = npcHandler, text = '...'}, conditionFunc, actionFunc)
+	function KeywordHandler:addGreetKeyword(keys, parameters, checkFunc, actionFunc)
+		if type(keys) ~= "table" then
+			keys = {keys}
+		end
+
+		local kw = {}
+		for i, v in ipairs(keys) do
+			kw[i] = type(v) == "string" and v:lower() or v
+		end
+		kw.callback = (FocusModule and FocusModule.messageMatcher) or _defaultMessageMatcher
+
+		parameters = parameters or {}
+		parameters._check = checkFunc
+		parameters._action = actionFunc
+
+		return self:addKeyword(kw, _onGreetKeyword, parameters)
+	end
+
+	-- Adds a farewell keyword that supports newer script format:
+	--   keywordHandler:addFarewellKeyword({'bye'}, {npcHandler = npcHandler, text = '...'}, conditionFunc, actionFunc)
+	function KeywordHandler:addFarewellKeyword(keys, parameters, checkFunc, actionFunc)
+		if type(keys) ~= "table" then
+			keys = {keys}
+		end
+
+		local kw = {}
+		for i, v in ipairs(keys) do
+			kw[i] = type(v) == "string" and v:lower() or v
+		end
+		kw.callback = (FocusModule and FocusModule.messageMatcher) or _defaultMessageMatcher
+
+		parameters = parameters or {}
+		parameters._check = checkFunc
+		parameters._action = actionFunc
+
+		return self:addKeyword(kw, _onFarewellKeyword, parameters)
+	end
+
 end

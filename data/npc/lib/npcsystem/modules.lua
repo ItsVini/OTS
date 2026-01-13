@@ -34,6 +34,16 @@ if Modules == nil then
 
 	StdModule = {}
 
+	-- === Compatibility helpers (8.0 datapacks) ===
+	-- Some NPC scripts use string:titleCase() and expect it to exist.
+	if not string.titleCase then
+		function string:titleCase()
+			return (self:gsub("(%a)([%w_']*)", function(first, rest)
+				return first:upper() .. rest:lower()
+			end))
+		end
+	end
+
 	-- These callback function must be called with parameters.npcHandler = npcHandler in the parameters table or they will not work correctly.
 	-- Notice: The members of StdModule have not yet been tested. If you find any bugs, please report them to me.
 	-- Usage:
@@ -227,12 +237,12 @@ if Modules == nil then
 	
 	-- Set custom greeting messages
 	function FocusModule:addGreetMessage(message)
-		if not self.greetWords then
-			self.greetWords = {}
-		end
-		
-		if type(message) == "table" then
-			for k, v in pairs(message) do
+		self.greetWords = self.greetWords or {}
+
+		if type(message) == "string" then
+			table.insert(self.greetWords, message)
+		elseif type(message) == "table" then
+			for _, v in pairs(message) do
 				table.insert(self.greetWords, v)
 			end
 		end
@@ -240,15 +250,24 @@ if Modules == nil then
 	
 	-- Set custom farewell messages
 	function FocusModule:addFarewellMessage(message)
-		if not self.farewellWords then
-			self.farewellWords = {}
-		end
-		
-		if type(message) == "table" then
-			for k, v in pairs(message) do
+		self.farewellWords = self.farewellWords or {}
+
+		if type(message) == "string" then
+			table.insert(self.farewellWords, message)
+		elseif type(message) == "table" then
+			for _, v in pairs(message) do
 				table.insert(self.farewellWords, v)
 			end
 		end
+	end
+	
+	-- Backward compatible aliases used by some datapacks
+	function FocusModule:addGreetKeyword(words)
+		return self:addGreetMessage(words)
+	end
+
+	function FocusModule:addFarewellKeyword(words)
+		return self:addFarewellMessage(words)
 	end
 	
 	-- Greeting callback function.
@@ -1236,4 +1255,64 @@ if Modules == nil then
 		end
 		return true
 	end
+	-- VoiceModule: makes NPC say random phrases periodically.
+	-- Usage in NPC script:
+	--   local voices = { {text = "Fresh supplies!"}, {text = "Step closer!"} }
+	--   npcHandler:addModule(VoiceModule:new(voices, 10))
+	VoiceModule = {
+		npcHandler = nil,
+		voices = nil,
+		interval = 10, -- seconds
+		chance = 100, -- 1..100
+		lastVoice = 0
+	}
+
+	function VoiceModule:new(voices, interval, chance)
+		local obj = {}
+		setmetatable(obj, self)
+		self.__index = self
+		obj.voices = voices or {}
+		obj.interval = interval or self.interval
+		obj.chance = chance or self.chance
+		obj.lastVoice = 0
+		return obj
+	end
+
+	function VoiceModule:init(handler)
+		self.npcHandler = handler
+		return true
+	end
+
+	function VoiceModule:callbackOnThink()
+		if not self.voices or #self.voices == 0 then
+			return true
+		end
+
+		local now = os.time()
+		if now - (self.lastVoice or 0) < (self.interval or 10) then
+			return true
+		end
+		self.lastVoice = now
+
+		if self.chance and self.chance < 100 then
+			if math.random(100) > self.chance then
+				return true
+			end
+		end
+
+		local entry = self.voices[math.random(#self.voices)]
+		local text = entry
+		local yell = false
+		if type(entry) == "table" then
+			text = entry.text or entry[1]
+			yell = entry.yell == true
+		end
+
+		if type(text) == "string" and text ~= "" then
+			-- Use npcHandler:say so it respects conversation settings; do not delay.
+			self.npcHandler:say(text, 0, yell and true or false, false)
+		end
+		return true
+	end
+
 end

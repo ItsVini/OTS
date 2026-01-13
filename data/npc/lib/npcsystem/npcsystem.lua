@@ -19,6 +19,28 @@ if not NpcSystem then
 	dofile('data/npc/lib/npcsystem/keywordhandler.lua')
 	dofile('data/npc/lib/npcsystem/npchandler.lua')
 	dofile('data/npc/lib/npcsystem/modules.lua')
+
+-- === Compatibility for mixed datapacks (8.0) ===
+-- Some NPC scripts expect Storage table and (sometimes) Queue to exist.
+
+if not Storage then
+	pcall(dofile, 'data/lib/core/storages.lua')
+	pcall(dofile, 'data/lib/compat/storages.lua')
+end
+Storage = Storage or {}
+
+-- Fallback dummy Queue (prevents crash if queue.lua is missing).
+if not Queue then
+	Queue = {
+		new = function()
+			return {
+				greetNext = function() return false end,
+				remove = function() end,
+				push = function() end
+			}
+		end
+	}
+end
 	dofile('data/npc/lib/npcsystem/queue.lua')
 
 	-- Global npc constants:
