@@ -78,6 +78,7 @@ void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 
 OutputMessage_ptr OutputMessagePool::getOutputMessage()
 {
-    return std::make_shared<OutputMessage>();
+    return OutputMessage_ptr(new OutputMessage());
 }
+
 
