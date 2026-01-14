@@ -17,7 +17,7 @@ stopAttackingAtExit = "false"
 
 -- Connection Config
 -- NOTE: maxPlayers set to 0 means no limit
-ip = "127.0.0.2"
+ip = "162.19.251.152"
 bindOnlyGlobalAddress = false
 loginProtocolPort = 7171
 gameProtocolPort = 7172
@@ -55,11 +55,11 @@ mapName = "global"
 mapAuthor = "Yurez"
 
 -- MySQL
-mysqlHost = "localhost"
-mysqlUser = "tfs"
-mysqlPass = "tfs"
+mysqlHost = "pr632991-001.eu.clouddb.ovh.net"
+mysqlUser = "admin"
+mysqlPass = "nqF8hcjrBPPu9P3"
 mysqlDatabase = "tfs80"
-mysqlPort = 3306
+mysqlPort = 35381
 mysqlSock = ""
 
 -- Misc.
@@ -107,5 +107,5 @@ startupDatabaseOptimization = true
 -- Status server information
 ownerName = ""
 ownerEmail = ""
-url = "https://otland.net/"
-location = "Sweden"
+url = ""
+location = ""
