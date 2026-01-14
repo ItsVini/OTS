@@ -86,11 +86,11 @@
 	<monster name="Terror Bird" file="Birds/terror bird.xml" />
 
 	<!-- Bonelords -->
-	<monster name="Beholder" file="bonelords/beholder.xml" />
-	<monster name="Braindeath" file="bonelords/braindeath.xml" />
-	<monster name="Gazer" file="bonelords/gazer.xml" />
-	<monster name="Elder Beholder" file="bonelords/elder beholder.xml" />
-	<monster name="Eye Of The Seven" file="bonelords/eye of the seven.xml" />
+	<monster name="Beholder" file="Bonelords/beholder.xml" />
+	<monster name="Braindeath" file="Bonelords/braindeath.xml" />
+	<monster name="Gazer" file="Bonelords/gazer.xml" />
+	<monster name="Elder Beholder" file="Bonelords/elder beholder.xml" />
+	<monster name="Eye Of The Seven" file="Bonelords/eye of the seven.xml" />
 
 	<!-- Bosses -->
 	<monster name="Annihilon" file="Bosses/annihilon.xml" />
