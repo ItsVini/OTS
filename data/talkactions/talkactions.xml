@@ -2,8 +2,8 @@
 <talkactions>
 	<!-- commands -->
 	<!-- Gamemasters -->
-        <talkaction words="/attr" separator=" " script="attributes.lua" />
-        <talkaction words="/save" separator=" " script="save.lua" />
+    <talkaction words="/attr" separator=" " script="attributes.lua" />
+    <talkaction words="/save" separator=" " script="save.lua" />
 	<talkaction words="/ban" separator=" " script="ban.lua" />
 	<talkaction words="/ipban" separator=" " script="ipban.lua" />
 	<talkaction words="/unban" separator=" " script="unban.lua" />
@@ -37,7 +37,7 @@
 	<talkaction words="/hide" script="hide.lua" />
 
 	<!-- player talkactions -->
-	<talkaction words="!outfit" script="guild_outfit.lua"/>
+	<!-- <talkaction words="!outfit" script="guild_outfit.lua"/>
 	<talkaction words="!buypremium" script="buyprem.lua" />
 	<talkaction words="!buyhouse" script="buyhouse.lua" />
 	<talkaction words="!leavehouse" script="leavehouse.lua" />
@@ -48,12 +48,12 @@
 	<talkaction words="!exp" script="expmana.lua"/>
     <talkaction words="!mana" script="expmana.lua"/>
 	<talkaction words="!share" script="partyShareExp.lua"/>
-	<talkaction words="/share" script="partyShareExp.lua"/>
+	<talkaction words="/share" script="partyShareExp.lua"/> -->
 
       
 
 
 	<!-- test talkactions -->
-	<talkaction words="!z" separator=" " script="magiceffect.lua" />
-	<talkaction words="!x" separator=" " script="animationeffect.lua" />
+	<!-- <talkaction words="!z" separator=" " script="magiceffect.lua" />
+	<talkaction words="!x" separator=" " script="animationeffect.lua" /> -->
 </talkactions>

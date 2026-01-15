@@ -1,12 +1,13 @@
--- Prevent spamm commands --
-function checkExhausted(cid, storage, seconds)
+-- Prevent spam commands --
+-- Returns true if command can be used now, false if the player is exhausted.
+function checkExhausted(player, storage, seconds)
+	local cid = player:getId()
 	local v = exhaustion.get(cid, storage)
-	if(not v) then
+	if not v then
 		exhaustion.set(cid, storage, seconds)
-	else
-		doPlayerSendTextMessage(cid, MESSAGE_EVENT_DEFAULT, "Please wait " .. v .. " seconds before trying this command again.")
-		return false
+		return true
 	end
 
-	return true
+	player:sendTextMessage(MESSAGE_EVENT_DEFAULT, "Please wait " .. v .. " seconds before trying this command again.")
+	return false
 end
