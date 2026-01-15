@@ -1,8 +1,8 @@
-local combat = createCombatObject()
-setCombatParam(combat, COMBAT_PARAM_TYPE, COMBAT_FIREDAMAGE)
-setCombatParam(combat, COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_FIRE)
-setCombatParam(combat, COMBAT_PARAM_CREATEITEM, 1487)
-setCombatFormula(combat, COMBAT_FORMULA_LEVELMAGIC, -0.5, -30, -1.0, 0)
+local combat = Combat()
+combat:setParameter(COMBAT_PARAM_TYPE, COMBAT_FIREDAMAGE)
+combat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_FIRE)
+combat:setParameter(COMBAT_PARAM_CREATEITEM, 1487)
+combat:setFormula(COMBAT_FORMULA_LEVELMAGIC, -0.5, -30, -1.0, 0)
 
 local arr = {
 {1, 1, 3, 1, 1}
@@ -19,8 +19,8 @@ local arrDiag = {
 }
 
 local area = createCombatArea(arr, arrDiag)
-setCombatArea(combat, area)
+combat:setArea(area)
 
-function onCastSpell(cid, var)
-	return doCombat(cid, combat, var)
+function onCastSpell(creature, variant)
+	return combat:execute(creature, variant)
 end
